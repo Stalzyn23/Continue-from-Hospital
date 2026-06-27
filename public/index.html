@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Rot 2041 - Hospital Outbreak</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="scene-backdrop" aria-hidden="true"></div>
+    <div class="scene-shade" aria-hidden="true"></div>
+
+    <main id="app" class="app-shell">
+      <section id="join-view" class="join-view">
+        <div class="join-panel">
+          <div class="brand-block">
+            <span class="brand-mark"></span>
+            <div>
+              <p class="kicker">Fantasy Survival RP</p>
+              <h1>Rot 2041</h1>
+              <p class="subcopy">Mercy General Hospital. Four ordinary lives. One impossible outbreak.</p>
+            </div>
+          </div>
+
+          <form id="character-form" class="character-grid">
+            <label class="face-upload">
+              <span>Face Claim</span>
+              <input id="face-claim" name="faceClaimFile" type="file" accept="image/*">
+              <img id="face-preview" alt="">
+              <b>Upload image</b>
+            </label>
+            <label>
+              Name
+              <input name="name" maxlength="32" value="Barry" autocomplete="off">
+            </label>
+            <label>
+              Age
+              <input name="age" maxlength="3" value="34" autocomplete="off">
+            </label>
+            <label>
+              Gender
+              <input name="gender" maxlength="24" value="Male" autocomplete="off">
+            </label>
+            <label>
+              Archetype
+              <select name="archetype">
+                <option>Scavenger</option>
+                <option>Hunter</option>
+                <option>Soldier</option>
+                <option>Mechanic</option>
+                <option>Medic</option>
+                <option>Mystic</option>
+                <option selected>Custom</option>
+              </select>
+            </label>
+            <label>
+              Trait
+              <select name="trait">
+                <option>Lucky</option>
+                <option>Strong</option>
+                <option>Fast</option>
+                <option>Intelligent</option>
+                <option>Charismatic</option>
+                <option>Eagle Eye</option>
+                <option selected>Iron Will</option>
+                <option>Beast Tamer</option>
+              </select>
+            </label>
+            <label>
+              Important NPC
+              <input name="personalNpcName" maxlength="36" value="Imani" autocomplete="off">
+            </label>
+            <label>
+              Relationship
+              <input name="personalNpcRelation" maxlength="40" value="younger sister" autocomplete="off">
+            </label>
+            <label class="wide">
+              Emotional Baggage
+              <textarea name="emotionalBaggage" rows="3" maxlength="220">I promised Imani I would stay until she woke up from surgery.</textarea>
+            </label>
+            <label class="wide">
+              Background
+              <textarea name="background" rows="3" maxlength="300">Former settlement organizer visiting family at Mercy General.</textarea>
+            </label>
+          </form>
+
+          <div class="room-controls">
+            <button id="create-room" class="primary-button" type="button">Create Room</button>
+            <div class="join-row">
+              <input id="room-code" maxlength="8" placeholder="ROT-2041" autocomplete="off">
+              <button id="join-room" type="button">Join</button>
+            </div>
+          </div>
+          <p id="status-line" class="status-line">Disconnected</p>
+        </div>
+      </section>
+
+      <section id="game-view" class="game-view hidden">
+        <header class="topbar">
+          <div class="brand-mini">
+            <span class="brand-mark"></span>
+            <div>
+              <strong>Rot 2041</strong>
+              <span id="scene-name">Mercy General</span>
+            </div>
+          </div>
+          <div class="top-actions">
+            <button id="audio-toggle" type="button" title="Toggle suspense audio">Audio</button>
+            <button id="inventory-open" type="button" title="Open inventory">Inventory</button>
+            <button id="copy-room" type="button">Room</button>
+            <button id="reset-room" type="button">Reset</button>
+          </div>
+        </header>
+
+        <div class="game-grid">
+          <aside class="left-panel">
+            <div class="panel-heading">
+              <h2>Players</h2>
+              <span id="player-count">0/4</span>
+            </div>
+            <div id="players-list" class="players-list"></div>
+          </aside>
+
+          <section class="story-panel">
+            <div class="world-strip" id="world-strip"></div>
+            <div id="log" class="story-log"></div>
+          </section>
+
+          <aside class="right-panel">
+            <div class="panel-heading">
+              <h2>Hospital</h2>
+              <span id="danger-pill">low</span>
+            </div>
+            <div id="resources" class="resources"></div>
+            <div class="memory-block">
+              <h3>NPCs</h3>
+              <div id="npc-list" class="npc-list"></div>
+            </div>
+            <div class="memory-block">
+              <h3>Private Notes</h3>
+              <ul id="private-notes" class="private-notes"></ul>
+            </div>
+          </aside>
+        </div>
+
+        <button id="action-open" class="floating-action primary-button" type="button">Take Turn</button>
+      </section>
+    </main>
+
+    <div id="drawer-backdrop" class="drawer-backdrop hidden"></div>
+
+    <aside id="action-drawer" class="drawer action-drawer" aria-hidden="true">
+      <div class="drawer-handle"></div>
+      <div class="drawer-head">
+        <div>
+          <h2>Turn Action</h2>
+          <span id="lock-state">Open</span>
+        </div>
+        <button class="drawer-close" data-close-drawer type="button">Close</button>
+      </div>
+      <div id="options-list" class="options-list"></div>
+      <form id="action-form" class="action-box">
+        <label>
+          Custom Action
+          <textarea id="action-input" rows="4" maxlength="500" placeholder="Grab Imani's chart, check her breathing, and look through the door window before moving."></textarea>
+        </label>
+        <label>
+          Spoken Words
+          <input id="speech-input" maxlength="180" placeholder="Imani, wake up. We need to move.">
+        </label>
+        <div class="action-buttons">
+          <button id="lock-action" class="primary-button" type="submit">Lock Action</button>
+          <button id="unlock-action" type="button">Unlock</button>
+          <button id="resolve-turn" type="button">Resolve GM</button>
+        </div>
+      </form>
+    </aside>
+
+    <aside id="inventory-drawer" class="drawer inventory-drawer" aria-hidden="true">
+      <div class="drawer-handle"></div>
+      <div class="drawer-head">
+        <div>
+          <h2>Inventory</h2>
+          <span>Body and bag</span>
+        </div>
+        <button class="drawer-close" data-close-drawer type="button">Close</button>
+      </div>
+      <div class="inventory-grid">
+        <section>
+          <h3>On Body</h3>
+          <ul id="body-items"></ul>
+        </section>
+        <section>
+          <h3>Backpack</h3>
+          <ul id="bag-items"></ul>
+        </section>
+      </div>
+    </aside>
+
+    <div id="toast" class="toast hidden" role="status"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>
