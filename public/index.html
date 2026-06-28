@@ -87,7 +87,7 @@
           <div class="room-controls">
             <button id="create-room" class="primary-button" type="button">Create Room</button>
             <div class="join-row">
-              <input id="room-code" maxlength="8" placeholder="ROT-2041" autocomplete="off">
+              <input id="room-code" maxlength="12" placeholder="ROT-2041 or MYROOM" autocomplete="off">
               <button id="join-room" type="button">Join</button>
             </div>
           </div>
@@ -110,6 +110,7 @@
             <button id="copy-room" type="button">Room</button>
             <button id="reset-room" type="button">Reset</button>
           </div>
+          <input id="room-link" class="room-link" readonly aria-label="Room invite link">
         </header>
 
         <div class="game-grid">

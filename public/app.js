@@ -9,6 +9,7 @@ const createRoomButton = document.querySelector("#create-room");
 const joinRoomButton = document.querySelector("#join-room");
 const roomCodeInput = document.querySelector("#room-code");
 const copyRoomButton = document.querySelector("#copy-room");
+const roomLinkInput = document.querySelector("#room-link");
 const resetRoomButton = document.querySelector("#reset-room");
 const playersList = document.querySelector("#players-list");
 const playerCount = document.querySelector("#player-count");
@@ -41,6 +42,12 @@ let reconnectTimer = null;
 let faceClaimData = "";
 let audioEngine = null;
 const savedSessionKey = "rot-2041-session";
+const roomFromUrl = normalizeRoomCode(new URLSearchParams(location.search).get("room") || "");
+const playerFromUrl = new URLSearchParams(location.search).get("player") || "";
+if (roomFromUrl) {
+  roomCodeInput.value = roomFromUrl;
+  statusLine.textContent = `Ready to join ${roomFromUrl}`;
+}
 
 const icons = {
   health: icon("M20 7.5c0 6-8 10.5-8 10.5S4 13.5 4 7.5A4.5 4.5 0 0 1 12 4a4.5 4.5 0 0 1 8 3.5Z"),
@@ -61,19 +68,19 @@ faceClaimInput.addEventListener("change", async () => {
   facePreview.classList.add("has-image");
 });
 
-createRoomButton.addEventListener("click", () => send({ type: "createRoom", character: getCharacter() }));
+createRoomButton.addEventListener("click", () => send({ type: "createRoom", roomCode: roomCodeInput.value, character: getCharacter() }));
 joinRoomButton.addEventListener("click", () => send({ type: "joinRoom", roomCode: roomCodeInput.value, character: getCharacter() }));
 roomCodeInput.addEventListener("input", () => {
-  roomCodeInput.value = roomCodeInput.value.toUpperCase();
+  roomCodeInput.value = normalizeRoomCode(roomCodeInput.value);
 });
 copyRoomButton.addEventListener("click", async () => {
   if (!appState) return;
-  const code = appState.room.code;
+  const link = getRoomLink(appState.room.code);
   try {
-    await navigator.clipboard.writeText(code);
-    showToast(`Copied ${code}`);
+    await navigator.clipboard.writeText(link);
+    showToast("Copied room link");
   } catch {
-    showToast(code);
+    showToast(link);
   }
 });
 resetRoomButton.addEventListener("click", () => send({ type: "resetRoom" }));
@@ -97,12 +104,16 @@ function connect() {
   socket.addEventListener("open", () => {
     statusLine.textContent = "Connected";
     const saved = getSavedSession();
-    if (saved?.roomCode && saved?.playerId) send({ type: "resumeRoom", roomCode: saved.roomCode, playerId: saved.playerId });
+    const canResumeLinkedPlayer = roomFromUrl && playerFromUrl && saved?.roomCode === roomFromUrl && saved?.playerId === playerFromUrl;
+    if ((!roomFromUrl || canResumeLinkedPlayer) && saved?.roomCode && saved?.playerId) {
+      send({ type: "resumeRoom", roomCode: saved.roomCode, playerId: saved.playerId });
+    }
   });
   socket.addEventListener("message", (event) => {
     const message = JSON.parse(event.data);
     if (message.type === "joined") {
       localStorage.setItem(savedSessionKey, JSON.stringify(message));
+      updateRoomUrl(message.roomCode, message.playerId);
       showToast(`Joined ${message.roomCode}`);
       return;
     }
@@ -120,6 +131,27 @@ function connect() {
     statusLine.textContent = "Disconnected";
     reconnectTimer = setTimeout(connect, 1200);
   });
+}
+
+function normalizeRoomCode(value) {
+  const raw = String(value || "").toUpperCase().replace(/[^A-Z0-9-]/g, "");
+  if (!raw) return "";
+  const withoutPrefix = raw.startsWith("ROT-") ? raw.slice(4) : raw;
+  return `ROT-${withoutPrefix}`.slice(0, 12);
+}
+
+function getRoomLink(code) {
+  const url = new URL(location.href);
+  url.searchParams.set("room", code);
+  url.searchParams.delete("player");
+  return url.toString();
+}
+
+function updateRoomUrl(code, playerId = "") {
+  const url = new URL(location.href);
+  url.searchParams.set("room", code);
+  if (playerId) url.searchParams.set("player", playerId);
+  history.replaceState(null, "", url);
 }
 
 function send(payload) {
@@ -161,7 +193,8 @@ function render() {
   const { room } = appState;
   const world = room.world;
   const me = room.myPlayer;
-  copyRoomButton.textContent = room.code;
+  copyRoomButton.textContent = "Copy Link";
+  roomLinkInput.value = getRoomLink(room.code);
   playerCount.textContent = `${room.players.length}/4`;
   dangerPill.textContent = world.dangerLevel;
   dangerPill.dataset.level = world.dangerLevel;

@@ -171,6 +171,13 @@ function makeRoomCode() {
   return `ROT-${Date.now().toString(36).slice(-4).toUpperCase()}`;
 }
 
+function normalizeRoomCode(value) {
+  const raw = clean(value, "", 20).toUpperCase().replace(/[^A-Z0-9-]/g, "");
+  if (!raw) return "";
+  const withPrefix = raw.startsWith("ROT-") ? raw : `ROT-${raw}`;
+  return withPrefix.slice(0, 12);
+}
+
 function clean(value, fallback = "", max = 1200) {
   return String(value ?? fallback).replace(/\s+/g, " ").trim().slice(0, max);
 }
@@ -341,7 +348,10 @@ async function handleMessage(client, data) {
   }
 
   if (message.type === "createRoom") {
-    const room = createRoom(makeRoomCode());
+    const requestedCode = normalizeRoomCode(message.roomCode);
+    const code = requestedCode || makeRoomCode();
+    if (rooms.has(code)) return sendError(client, "That room code is already in use. Choose another or join it.");
+    const room = createRoom(code);
     const player = createPlayer(message.character || {}, 1);
     rooms.set(room.code, room);
     room.players.push(player);

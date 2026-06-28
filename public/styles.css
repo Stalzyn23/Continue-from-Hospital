@@ -291,9 +291,9 @@ h3 {
 
 .topbar {
   min-height: 64px;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto minmax(220px, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -319,6 +319,7 @@ h3 {
 }
 
 .top-actions {
+  justify-self: end;
   gap: 9px;
 }
 
@@ -329,6 +330,12 @@ h3 {
 .top-actions .is-on {
   border-color: rgba(112, 196, 143, 0.8);
   color: var(--green);
+}
+
+.room-link {
+  min-height: 38px;
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 
 .game-grid {
@@ -834,10 +841,11 @@ h3 {
   .topbar {
     min-height: 58px;
     align-items: stretch;
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .top-actions {
+    justify-self: stretch;
     width: 100%;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
